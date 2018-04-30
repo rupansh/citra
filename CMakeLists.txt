@@ -116,12 +116,27 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 # ======================
 
 find_package(Boost 1.66.0 QUIET)
+
+find_package(PNG QUIET)
+if (NOT PNG_FOUND)
+    message(STATUS "libpng not found. Some debugging features have been disabled.")
+else()
+  message(STATUS "Using static libpng from Externals")
+  add_subdirectory(externals/libpng)
+  set(PNG png)
+endif()
+
 if (NOT Boost_FOUND)
     message(STATUS "Boost 1.66.0 or newer not found, falling back to externals")
 
-    set(BOOST_ROOT "${PROJECT_SOURCE_DIR}/externals/boost")
-    set(Boost_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/externals/boost")
-    set(Boost_NO_SYSTEM_PATHS OFF)
+    # Explicitly tell cmake where to find boost
+    if(ANDROID)
+        set(Boost_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/externals/boost")
+    else()
+        set(BOOST_ROOT "${CMAKE_SOURCE_DIR}/externals/boost")
+        set(Boost_NO_SYSTEM_PATHS OFF)
+    endif()
+
     find_package(Boost QUIET REQUIRED)
 endif()
 
@@ -228,6 +243,19 @@ elseif (WIN32)
     endif()
 elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
     set(PLATFORM_LIBRARIES rt)
+endif()
+
+if (UNIX OR MINGW)
+    find_library(ICONV_LIBRARY NAMES iconv)
+
+    if (NOT ANDROID AND ICONV_LIBRARY)
+        list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
+    else()
+        message(STATUS "Using static iconv from Externals")
+        include_directories(Externals/libiconv-1.14/include)
+        add_subdirectory(Externals/libiconv-1.14)
+        set(ICONV_LIBRARIES iconv)
+    endif()
 endif()
 
 # Setup a custom clang-format target (if clang-format can be found) that will run
