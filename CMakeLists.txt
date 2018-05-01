@@ -112,6 +112,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 
+if(ANDROID)
+    message(STATUS "Building for Android")
+
+    # We are cross compiling, search only the toolchain for libraries and includes
+    SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+    SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+    SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+    SET(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+endif()
+
 # System imported libraries
 # ======================
 
@@ -119,11 +129,9 @@ find_package(Boost 1.66.0 QUIET)
 
 find_package(PNG QUIET)
 if (NOT PNG_FOUND)
-    message(STATUS "libpng not found. Some debugging features have been disabled.")
-else()
-  message(STATUS "Using static libpng from Externals")
-  add_subdirectory(externals/libpng)
-  set(PNG png)
+    message(STATUS "Using static libpng from Externals")
+    add_subdirectory(externals/libpng)
+    set(PNG png)
 endif()
 
 if (NOT Boost_FOUND)
@@ -246,15 +254,17 @@ elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
 endif()
 
 if (UNIX OR MINGW)
-    find_library(ICONV_LIBRARY NAMES iconv)
-
-    if (NOT ANDROID AND ICONV_LIBRARY)
-        list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
+    if(NOT ANDROID)
+        find_library(ICONV_LIBRARY NAMES iconv)
     else()
         message(STATUS "Using static iconv from Externals")
-        include_directories(Externals/libiconv-1.14/include)
-        add_subdirectory(Externals/libiconv-1.14)
-        set(ICONV_LIBRARIES iconv)
+        include_directories(externals/libiconv-1.14/include)
+        add_subdirectory(externals/libiconv-1.14)
+        set(ICONV_LIBRARY iconv)
+    endif()
+
+    if (ICONV_LIBRARY)
+        list(APPEND PLATFORM_LIBRARIES ${ICONV_LIBRARY})
     endif()
 endif()
 

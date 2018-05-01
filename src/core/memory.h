@@ -14,6 +14,16 @@
 
 class ARM_Interface;
 
+// On Android, PAGE_SIZE and PAGE_MASK are predefined macros, conflicting with identifiers here.
+#ifdef ANDROID
+#ifdef PAGE_SIZE
+#undef PAGE_SIZE
+#endif
+#ifdef PAGE_MASK
+#undef PAGE_MASK
+#endif
+#endif
+
 namespace Kernel {
 class Process;
 }
