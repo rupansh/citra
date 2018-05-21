@@ -696,6 +696,14 @@ void SetUserPath(const std::string& path) {
         g_paths.emplace(UserPath::ConfigDir, user_path + CONFIG_DIR DIR_SEP);
         g_paths.emplace(UserPath::CacheDir, user_path + CACHE_DIR DIR_SEP);
 #else
+#ifdef ANDROID
+        if(FileUtil::Exists(ROOT_DIR DIR_SEP SDCARD_DIR))
+        {
+            paths[D_USER_IDX] = ROOT_DIR DIR_SEP SDCARD_DIR DIR_SEP EMU_DATA_DIR DIR_SEP;
+            paths[D_CONFIG_IDX] = paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
+            paths[D_CACHE_IDX] = paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
+        }
+#else
         if (FileUtil::Exists(ROOT_DIR DIR_SEP USERDATA_DIR)) {
             user_path = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
             g_paths.emplace(UserPath::ConfigDir, user_path + CONFIG_DIR DIR_SEP);
@@ -710,6 +718,34 @@ void SetUserPath(const std::string& path) {
             g_paths.emplace(UserPath::CacheDir, cache_dir + DIR_SEP EMU_DATA_DIR DIR_SEP);
         }
 #endif
+#endif
+        paths[D_SDMC_IDX] = paths[D_USER_IDX] + SDMC_DIR DIR_SEP;
+        paths[D_NAND_IDX] = paths[D_USER_IDX] + NAND_DIR DIR_SEP;
+        paths[D_SYSDATA_IDX] = paths[D_USER_IDX] + SYSDATA_DIR DIR_SEP;
+    }
+
+    if (!newPath.empty()) {
+        if (!FileUtil::IsDirectory(newPath)) {
+            LOG_ERROR(Common_Filesystem, "Invalid path specified %s", newPath.c_str());
+            return paths[DirIDX];
+        } else {
+            paths[DirIDX] = newPath;
+        }
+
+        switch (DirIDX) {
+        case D_ROOT_IDX:
+            paths[D_USER_IDX] = paths[D_ROOT_IDX] + DIR_SEP;
+            break;
+
+        case D_USER_IDX:
+            paths[D_USER_IDX] = paths[D_ROOT_IDX] + DIR_SEP;
+            paths[D_CONFIG_IDX] = paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
+            paths[D_CACHE_IDX] = paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
+            paths[D_SDMC_IDX] = paths[D_USER_IDX] + SDMC_DIR DIR_SEP;
+            paths[D_NAND_IDX] = paths[D_USER_IDX] + NAND_DIR DIR_SEP;
+            break;
+        }
+    return paths[DirIDX];
     }
     g_paths.emplace(UserPath::SDMCDir, user_path + SDMC_DIR DIR_SEP);
     g_paths.emplace(UserPath::NANDDir, user_path + NAND_DIR DIR_SEP);
