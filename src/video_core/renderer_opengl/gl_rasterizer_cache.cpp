@@ -866,10 +866,11 @@ void CachedSurface::DownloadGLTexture(const MathUtil::Rectangle<u32>& rect, GLui
         state.Apply();
 
         glActiveTexture(GL_TEXTURE0);
-        if (GLES) {
-            GetTexImageOES(GL_TEXTURE_2D, 0, tuple.format, tuple.type, height, width, 0,
+        if(GLAD_GL_ES_VERSION_3_1){
+            getTexImageOES(GL_TEXTURE_2D, 0, height, width, 0,
                            &gl_buffer[buffer_offset]);
-        } else {
+        }
+        else{
             glGetTexImage(GL_TEXTURE_2D, 0, tuple.format, tuple.type, &gl_buffer[buffer_offset]);
         }
     } else {
@@ -1086,12 +1087,25 @@ RasterizerCacheOpenGL::RasterizerCacheOpenGL() {
     d24s8_abgr_buffer.Create();
     d24s8_abgr_buffer_size = 0;
 
-    std::string vs_source = R"(
+    std::string vs_source = GLShader::GetGLSLVersionString();
+    vs_source += R"(
 const vec2 vertices[4] = vec2[4](vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(-1.0, 1.0), vec2(1.0, 1.0));
 void main() {
     gl_Position = vec4(vertices[gl_VertexID], 0.0, 1.0);
 }
 )";
+    std::string fs_source = GLShader::GetGLSLVersionString();
+    fs_source += R"(
+#ifdef GL_ES
+#extension GL_ANDROID_extension_pack_es31a : enable
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+precision highp samplerBuffer;
+#else
+precision mediump float;
+precision mediump samplerBuffer;
+#endif // GL_FRAGMENT_PRECISION_HIGH
+#endif // GL_ES
 
     std::string fs_source = GLES ? fragment_shader_precision_OES : "";
     fs_source += R"(

@@ -27,9 +27,8 @@
 
 namespace OpenGL {
 // Workaround for compiling shaders for GL ES
-#ifdef ANDROID
-static const char vertex_shader_oes[] = R"(
-#version 300 es
+static const char vertex_shader_oes[] = R"(#version 300 es
+
 in vec2 vert_position;
 in vec2 vert_tex_coord;
 out vec2 frag_tex_coord;
@@ -48,8 +47,15 @@ void main() {
 }
 )";
 
-static const char fragment_shader_oes[] = R"(
-#version 300 es
+static const char fragment_shader_oes[] = R"(#version 300 es
+#ifdef GL_ES
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif // GL_FRAGMENT_PRECISION_HIGH
+#endif // GL_ES
+
 in vec2 frag_tex_coord;
 out vec4 color;
 uniform sampler2D color_texture;
@@ -374,7 +380,7 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
 
     switch (format) {
     case GPU::Regs::PixelFormat::RGBA8:
-        internal_format = GL_RGBA8;
+        internal_format = GL_RGBA;
         texture.gl_format = GL_RGBA;
         texture.gl_type = GLES ? GL_UNSIGNED_BYTE : GL_UNSIGNED_INT_8_8_8_8;
         break;
