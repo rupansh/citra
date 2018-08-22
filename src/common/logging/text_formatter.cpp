@@ -5,7 +5,6 @@
 #include <array>
 #include <cstdio>
 
-
 #ifdef _WIN32
 #include <windows.h>
 #elif defined(ANDROID)
@@ -42,7 +41,7 @@ void PrintMessage(const Entry& entry) {
 
     // Android's log level enum are offset by '2' compared to Citras'
     const int android_log_level = (int)entry.log_level + 2;
-    __android_log_print(android_log_level,TAG,"%s",format_buffer.data());
+    __android_log_print(android_log_level, TAG, "%s", str.c_str());
 #else
     fputs(format_buffer.data(), stderr);
     fputc('\n', stderr);

@@ -8,22 +8,20 @@
 #define SDL_MAIN_HANDLED
 //#include <SDL.h>
 #include <glad/glad.h>
-#include <citra_android/jni/ndk_helper/GLContext.h>
+#include "citra_android/jni/button_manager.h"
+#include "citra_android/jni/ndk_helper/GLContext.h"
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
 #include "common/string_util.h"
 #include "core/3ds.h"
 #include "core/settings.h"
+#include "citra_android/jni/emu_window/emu_window.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
 #include "input_common/motion_emu.h"
 #include "network/network.h"
-#include "emu_window.h"
 
-bool initialized = false;
-
-
-void EmuWindow_Android::OnSurfaceChanged(ANativeWindow* surface){
+void EmuWindow_Android::OnSurfaceChanged(ANativeWindow* surface) {
     render_window = surface;
 }
 
@@ -61,9 +59,7 @@ EmuWindow_Android::EmuWindow_Android(ANativeWindow* surface) {
 
     OnFramebufferSizeChanged();
     DoneCurrent();
-
 }
-
 
 EmuWindow_Android::~EmuWindow_Android() {
     gl_context->Invalidate();
@@ -72,12 +68,12 @@ EmuWindow_Android::~EmuWindow_Android() {
 
 void EmuWindow_Android::SwapBuffers() {
 
-    if(EGL_SUCCESS!=gl_context->Swap())
-        LOG_ERROR(Frontend,"Swap failed");
+    if (EGL_SUCCESS != gl_context->Swap())
+        LOG_ERROR(Frontend, "Swap failed");
 }
 
 void EmuWindow_Android::PollEvents() {
-    if(render_window != gl_context->GetANativeWindow()) {
+    if (render_window != gl_context->GetANativeWindow()) {
         MakeCurrent();
         OnFramebufferSizeChanged();
     }

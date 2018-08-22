@@ -29,11 +29,11 @@
 #include "video_core/renderer_opengl/gl_rasterizer_cache.h"
 #include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_vars.h"
+#include "video_core/renderer_opengl/renderer_opengl.h"
 #include "video_core/utils.h"
 #include "video_core/video_core.h"
-#include "renderer_opengl.h"
 
-// Since GLES dosent support GL_UNSIGNED_INT_8_8_8_8 or GL_BGR , this will convert them to
+// Since GLES dosent support GL_UNSIGNED_INT_8_8_8_8 or GL_BGR , assume them to be
 // GL_UNSIGNED_BYTE and GL_RGB respectively.
 #ifdef ANDROID
 #undef GL_UNSIGNED_INT_8_8_8_8
@@ -866,11 +866,9 @@ void CachedSurface::DownloadGLTexture(const MathUtil::Rectangle<u32>& rect, GLui
         state.Apply();
 
         glActiveTexture(GL_TEXTURE0);
-        if(GLAD_GL_ES_VERSION_3_1){
-            getTexImageOES(GL_TEXTURE_2D, 0, height, width, 0,
-                           &gl_buffer[buffer_offset]);
-        }
-        else{
+        if (GLAD_GL_ES_VERSION_3_1) {
+            getTexImageOES(GL_TEXTURE_2D, 0, height, width, 0, &gl_buffer[buffer_offset]);
+        } else {
             glGetTexImage(GL_TEXTURE_2D, 0, tuple.format, tuple.type, &gl_buffer[buffer_offset]);
         }
     } else {

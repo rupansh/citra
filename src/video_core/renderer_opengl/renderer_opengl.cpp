@@ -313,8 +313,8 @@ void RendererOpenGL::InitOpenGLObjects() {
                  0.0f);
 
     // Link shaders and get variable locations
-    if (GLES) {
-	shader.Create(vertex_shader_oes, fragment_shader_oes);
+    if (GLAD_GL_ES_VERSION_3_0) {
+        shader.Create(vertex_shader_oes, fragment_shader_oes);
     } else {
         shader.Create(vertex_shader, fragment_shader);
     }
