@@ -1264,19 +1264,19 @@ in vec4 gl_FragCoord;
 #endif // CITRA_GLES
     out += R"(
 // High precision may or may not supported in GLES3. If it isn't, use medium precision instead.
-#ifdef GL_ES
-#ifdef GL_FRAGMENT_PRECISION_HIGH
+#if defined(GL_ES)
+#if defined(GL_FRAGMENT_PRECISION_HIGH)
 precision highp float;
 precision highp samplerBuffer;
 #else
 precision mediump float;
 precision mediump samplerBuffer;
-#endif // GL_FRAGMENT_PRECISION_HIGH
-#endif // GL_ES
+#endif // defined(GL_FRAGMENT_PRECISION_HIGH)
+#endif // defined(GL_ES)
 
-#ifndef GL_ES
+#if !defined(GL_ES)
 in vec4 gl_FragCoord;
-#endif // GL_ES
+#endif // !defined(GL_ES)
 )";
 
     out += GetVertexInterfaceDeclaration(false, separable_shader);
