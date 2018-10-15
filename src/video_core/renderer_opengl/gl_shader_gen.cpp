@@ -1250,7 +1250,8 @@ float ProcTexNoiseCoef(vec2 x) {
 std::string GenerateFragmentShader(const PicaFSConfig& config, bool separable_shader) {
     const auto& state = config.state;
 
-    std::string out = R"(
+    std::string out = GLShader::GetGLSLVersionString();
+    out += R"(
 #extension GL_ARB_shader_image_load_store : enable
 #extension GL_ARB_shader_image_size : enable
 #define ALLOW_SHADOW (defined(GL_ARB_shader_image_load_store) && defined(GL_ARB_shader_image_size))
