@@ -33,15 +33,6 @@
 #include "video_core/utils.h"
 #include "video_core/video_core.h"
 
-// Since GLES dosent support GL_UNSIGNED_INT_8_8_8_8 or GL_BGR , assume them to be
-// GL_UNSIGNED_BYTE and GL_RGB respectively.
-#ifdef ANDROID
-#undef GL_UNSIGNED_INT_8_8_8_8
-#define GL_UNSIGNED_INT_8_8_8_8 GL_UNSIGNED_BYTE
-#undef GL_BGR
-#define GL_BGR GL_RGB
-#endif
-
 namespace OpenGL {
 
 using SurfaceType = SurfaceParams::SurfaceType;
@@ -867,7 +858,8 @@ void CachedSurface::DownloadGLTexture(const MathUtil::Rectangle<u32>& rect, GLui
 
         glActiveTexture(GL_TEXTURE0);
         if (GLAD_GL_ES_VERSION_3_1) {
-            getTexImageOES(GL_TEXTURE_2D, 0, height, width, 0, &gl_buffer[buffer_offset]);
+            getTexImageOES (GL_TEXTURE_2D, 0, tuple.format, tuple.type, height, width, 0,
+                           &gl_buffer[buffer_offset]);
         } else {
             glGetTexImage(GL_TEXTURE_2D, 0, tuple.format, tuple.type, &gl_buffer[buffer_offset]);
         }
