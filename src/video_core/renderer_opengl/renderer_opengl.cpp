@@ -28,7 +28,7 @@
 namespace OpenGL {
 // Workaround for compiling shaders for GL ES
 #ifdef ANDROID
-static const char vertex_shader[] = R"(
+static const char vertex_shader_oes[] = R"(
 #version 300 es
 in vec2 vert_position;
 in vec2 vert_tex_coord;
@@ -48,7 +48,7 @@ void main() {
 }
 )";
 
-static const char fragment_shader[] = R"(
+static const char fragment_shader_oes[] = R"(
 #version 300 es
 in vec2 frag_tex_coord;
 out vec4 color;
@@ -58,7 +58,6 @@ void main() {
 }
 )";
 
-#else
 static const char vertex_shader[] = R"(
 in vec2 vert_position;
 in vec2 vert_tex_coord;
@@ -90,7 +89,6 @@ void main() {
     color = texture(color_texture, frag_tex_coord);
 }
 )";
-#endif
 
 /**
  * Vertex structure that the drawn screen rectangles are composed of.
@@ -310,9 +308,7 @@ void RendererOpenGL::InitOpenGLObjects() {
 
     // Link shaders and get variable locations
     if (GLES) {
-        std::string frag_source(fragment_shader_precision_OES);
-        frag_source += fragment_shader;
-        shader.Create(vertex_shader, frag_source.data());
+	shader.Create(vertex_shader_oes, fragment_shader_oes);
     } else {
         shader.Create(vertex_shader, fragment_shader);
     }
@@ -574,7 +570,6 @@ Core::System::ResultStatus RendererOpenGL::Init() {
 
     if (GLAD_GL_KHR_debug) {
         glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(DebugHandler, nullptr);
     }
 
@@ -594,7 +589,7 @@ Core::System::ResultStatus RendererOpenGL::Init() {
         return Core::System::ResultStatus::ErrorVideoCore_ErrorGenericDrivers;
     }
 
-    if (!(GLAD_GL_VERSION_3_3 || GLAD_GL_ES_VERSION_3_1)) {
+    if (!(GLAD_GL_VERSION_3_3 || GLAD_GL_ES_VERSION_3_0)) {
         return Core::System::ResultStatus::ErrorVideoCore_ErrorBelowGL33;
     }
 
