@@ -31,6 +31,16 @@
 #include "video_core/renderer_opengl/gl_vars.h"
 #include "video_core/utils.h"
 #include "video_core/video_core.h"
+#include "renderer_opengl.h"
+
+// Since GLES dosent support GL_UNSIGNED_INT_8_8_8_8 or GL_BGR , this will convert them to
+// GL_UNSIGNED_BYTE and GL_RGB respectively.
+#ifdef ANDROID
+#undef GL_UNSIGNED_INT_8_8_8_8
+#define GL_UNSIGNED_INT_8_8_8_8 GL_UNSIGNED_BYTE
+#undef GL_BGR
+#define GL_BGR GL_RGB
+#endif
 
 namespace OpenGL {
 
@@ -85,77 +95,6 @@ static const FormatTuple& GetFormatTuple(PixelFormat pixel_format) {
         return depth_format_tuples[tuple_idx];
     }
     return tex_tuple;
-}
-
-/**
- * OpenGL ES does not support glGetTexImage. Obtain the pixels by attaching the
- * texture to a framebuffer.
- * Originally from https://github.com/apitrace/apitrace/blob/master/retrace/glstate_images.cpp
- */
-static inline void GetTexImageOES(GLenum target, GLint level, GLenum format, GLenum type,
-                                  GLint height, GLint width, GLint depth, GLubyte* pixels) {
-
-    memset(pixels, 0x80, height * width * 4);
-
-    GLenum texture_binding = GL_NONE;
-    switch (target) {
-    case GL_TEXTURE_2D:
-        texture_binding = GL_TEXTURE_BINDING_2D;
-        break;
-    case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
-    case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
-    case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
-    case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
-    case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
-    case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
-        texture_binding = GL_TEXTURE_BINDING_CUBE_MAP;
-        break;
-    case GL_TEXTURE_3D_OES:
-        texture_binding = GL_TEXTURE_BINDING_3D_OES;
-    default:
-        return;
-    }
-
-    GLint texture = 0;
-    glGetIntegerv(texture_binding, &texture);
-    if (!texture) {
-        return;
-    }
-
-    GLint prev_fbo = 0;
-    GLuint fbo = 0;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prev_fbo);
-    glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-    switch (target) {
-    case GL_TEXTURE_2D:
-    case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
-    case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
-    case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
-    case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
-    case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
-    case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z: {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, level);
-        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        if (status != GL_FRAMEBUFFER_COMPLETE) {
-            LOG_DEBUG(Render_OpenGL, "Framebuffer is incomplete, status: {:X}", status);
-        }
-        glReadPixels(0, 0, width, height, format, type, pixels);
-        break;
-    }
-    case GL_TEXTURE_3D_OES:
-        for (int i = 0; i < depth; i++) {
-            glFramebufferTexture3D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_3D, texture,
-                                   level, i);
-            glReadPixels(0, 0, width, height, format, type, pixels + 4 * i * width * height);
-        }
-        break;
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, prev_fbo);
-
-    glDeleteFramebuffers(1, &fbo);
 }
 
 template <typename Map, typename Interval>
@@ -1062,6 +1001,80 @@ Surface FindMatch(const SurfaceCache& surface_cache, const SurfaceParams& params
         }
     }
     return match_surface;
+}
+
+/**
+ * OpenGL ES does not support glGetTexImage. Obtain the pixels by attaching the
+ * texture to a framebuffer.
+ * Originally authored by afrantzis for apitrace
+ */
+static inline void
+getTexImageOES(GLenum target, GLint level, GLint height, GLint width, GLubyte *pixels)
+{
+    LOG_INFO(Render_OpenGL,"GLES getTexImageOES Workaround");
+
+    GLint depth = 1; // Since we are only using this for 2D lets ignore the 3D aspect
+    memset(pixels, 0x80, height * width * 4);
+
+    GLenum texture_binding = GL_NONE;
+    switch (target) {
+        case GL_TEXTURE_2D:
+            texture_binding = GL_TEXTURE_BINDING_2D;
+            break;
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+            texture_binding = GL_TEXTURE_BINDING_CUBE_MAP;
+            break;
+        case GL_TEXTURE_3D_OES:
+            texture_binding = GL_TEXTURE_BINDING_3D_OES;
+        default:
+            return;
+    }
+
+    GLint texture = 0;
+    glGetIntegerv(texture_binding, &texture);
+    if (!texture) {
+        return;
+    }
+
+    GLint prev_fbo = 0;
+    GLuint fbo = 0;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prev_fbo);
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    GLenum status;
+
+    switch (target) {
+        case GL_TEXTURE_2D:
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, level);
+            status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if (status != GL_FRAMEBUFFER_COMPLETE) {
+                LOG_ERROR(Render_OpenGL, "%s", status);
+            }
+            glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+            break;
+        case GL_TEXTURE_3D_OES:
+            for (int i = 0; i < depth; i++) {
+                glFramebufferTexture3D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_3D, texture, level, i);
+                glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels + 4 * i * width * height);
+            }
+            break;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, prev_fbo);
+
+    glDeleteFramebuffers(1, &fbo);
 }
 
 RasterizerCacheOpenGL::RasterizerCacheOpenGL() {
