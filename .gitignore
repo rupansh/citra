@@ -34,6 +34,9 @@ Thumbs.db
 # Python files
 *.pyc
 
+# diff patches
+*.patch
+
 # Flatpak generated files
 .flatpak-builder/
 repo/
