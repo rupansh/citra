@@ -225,8 +225,7 @@ if ((CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GN
     endif()
     if (CRYPTOPP_HAS_ARMV8_CRYPTO)
         set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/cryptopp/rijndael-simd.cpp
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/cryptopp/sha-simd.cpp
-                                    PROPERTIES COMPILE_FLAGS "-march=armv8-a+crypto")
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/cryptopp/sha-simd.cpp)
     endif()
 endif()
 

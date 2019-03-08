@@ -64,9 +64,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     Log::SetGlobalFilter(log_filter);
 
     Log::AddBackend(std::make_unique<Log::ColorConsoleBackend>());
-    FileUtil::CreateFullPath(FileUtil::GetUserPath(D_LOGS_IDX));
+    const std::string& log_dir = FileUtil::GetUserPath(FileUtil::UserPath::LogDir);
+    FileUtil::CreateFullPath(log_dir);
     Log::AddBackend(
-        std::make_unique<Log::FileBackend>(FileUtil::GetUserPath(D_LOGS_IDX) + LOG_FILE));
+        std::make_unique<Log::FileBackend>(log_dir + LOG_FILE));
 
     LOG_INFO(Frontend, "Logging backend initialised");
 

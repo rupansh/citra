@@ -21,7 +21,7 @@
 
 Config::Config() {
     // TODO: Don't hardcode the path; let the frontend decide where to put the config files.
-    sdl2_config_loc = FileUtil::GetUserPath(D_CONFIG_IDX) + "config.ini";
+    sdl2_config_loc = FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir) + "sdl2-config.ini";
     sdl2_config = std::make_unique<INIReader>(sdl2_config_loc);
 
     Reload();
@@ -64,28 +64,28 @@ void Config::ReadValues() {
     // Controls
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
         std::string default_param = InputManager::GenerateButtonParamPackage(default_buttons[i]);
-        Settings::values.buttons[i] =
+        Settings::values.current_input_profile.buttons[i] =
             sdl2_config->Get("Controls", Settings::NativeButton::mapping[i], default_param);
-        if (Settings::values.buttons[i].empty())
-            Settings::values.buttons[i] = default_param;
+        if (Settings::values.current_input_profile.buttons[i].empty())
+            Settings::values.current_input_profile.buttons[i] = default_param;
     }
 
     for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
         std::string default_param = InputManager::GenerateAnalogParamPackage(default_analogs[i]);
-        Settings::values.analogs[i] =
+        Settings::values.current_input_profile.analogs[i] =
             sdl2_config->Get("Controls", Settings::NativeAnalog::mapping[i], default_param);
-        if (Settings::values.analogs[i].empty())
-            Settings::values.analogs[i] = default_param;
+        if (Settings::values.current_input_profile.analogs[i].empty())
+            Settings::values.current_input_profile.analogs[i] = default_param;
     }
 
-    Settings::values.motion_device =
+    Settings::values.current_input_profile.motion_device =
         sdl2_config->Get("Controls", "motion_device",
                          "engine:motion_emu,update_period:100,sensitivity:0.01,tilt_clamp:90.0");
-    Settings::values.touch_device =
+    Settings::values.current_input_profile.touch_device =
         sdl2_config->Get("Controls", "touch_device", "engine:emu_window");
-    Settings::values.udp_input_address =
+    Settings::values.current_input_profile.udp_input_address =
         sdl2_config->Get("Controls", "udp_input_address", InputCommon::CemuhookUDP::DEFAULT_ADDR);
-    Settings::values.udp_input_port = static_cast<u16>(sdl2_config->GetInteger(
+    Settings::values.current_input_profile.udp_input_port = static_cast<u16>(sdl2_config->GetInteger(
         "Controls", "udp_input_port", InputCommon::CemuhookUDP::DEFAULT_PORT));
 
     // Core
@@ -101,7 +101,7 @@ void Config::ReadValues() {
     Settings::values.use_shader_jit = sdl2_config->GetBoolean("Renderer", "use_shader_jit", true);
     Settings::values.resolution_factor =
         static_cast<u16>(sdl2_config->GetInteger("Renderer", "resolution_factor", 1));
-    Settings::values.use_vsync = sdl2_config->GetBoolean("Renderer", "use_vsync", false);
+    Settings::values.vsync_enabled = sdl2_config->GetBoolean("Renderer", "vsync_enabled", false);
     Settings::values.use_frame_limit = sdl2_config->GetBoolean("Renderer", "use_frame_limit", true);
     Settings::values.frame_limit =
         static_cast<u16>(sdl2_config->GetInteger("Renderer", "frame_limit", 100));
@@ -211,13 +211,8 @@ void Config::ReadValues() {
     // Web Service
     Settings::values.enable_telemetry =
         sdl2_config->GetBoolean("WebService", "enable_telemetry", true);
-    Settings::values.telemetry_endpoint_url = sdl2_config->Get(
-        "WebService", "telemetry_endpoint_url", "https://services.citra-emu.org/api/telemetry");
-    Settings::values.verify_endpoint_url = sdl2_config->Get(
-        "WebService", "verify_endpoint_url", "https://services.citra-emu.org/api/profile");
-    Settings::values.announce_multiplayer_room_endpoint_url =
-        sdl2_config->Get("WebService", "announce_multiplayer_room_endpoint_url",
-                         "https://services.citra-emu.org/api/multiplayer/rooms");
+    Settings::values.web_api_url =
+        sdl2_config->Get("WebService", "web_api_url", "https://api.citra-emu.org");
     Settings::values.citra_username = sdl2_config->Get("WebService", "citra_username", "");
     Settings::values.citra_token = sdl2_config->Get("WebService", "citra_token", "");
 }

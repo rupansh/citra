@@ -9,6 +9,8 @@
 
 namespace OpenGL {
 
+namespace GLShader = OpenGL;
+
 // High precision may or may not supported in GLES3. If it isn't, use medium precision instead.
 static constexpr char fragment_shader_precision_OES[] = R"(
 #ifdef GL_FRAGMENT_PRECISION_HIGH
@@ -34,5 +36,11 @@ GLuint LoadShader(const char* source, GLenum type);
  * @returns Handle of the newly created OpenGL program object
  */
 GLuint LoadProgram(bool separable_program, const std::vector<GLuint>& shaders);
+
+/**
+ *  Function to find the version string of GLSL corresponding to the GL Version
+ *  @returns The version string of GLSL
+ */
+std::string GetGLSLVersionString();
 
 } // namespace OpenGL

@@ -1260,8 +1260,6 @@ std::string GenerateFragmentShader(const PicaFSConfig& config, bool separable_sh
     if (separable_shader) {
         out += "#extension GL_ARB_separate_shader_objects : enable\n";
     }
-in vec4 gl_FragCoord;
-#endif // CITRA_GLES
     out += R"(
 // High precision may or may not supported in GLES3. If it isn't, use medium precision instead.
 #if defined(GL_ES)
@@ -1282,6 +1280,10 @@ in vec4 gl_FragCoord;
     out += GetVertexInterfaceDeclaration(false, separable_shader);
 
     out += R"(
+#ifndef CITRA_GLES
+in vec4 gl_FragCoord;
+#endif // CITRA_GLES
+
 out vec4 color;
 
 uniform sampler2D tex0;
@@ -1656,7 +1658,7 @@ void main() {
     return out;
 }
 
-boost::optional<std::string> GenerateVertexShader(const Pica::Shader::ShaderSetup& setup,
+std::optional<std::string> GenerateVertexShader(const Pica::Shader::ShaderSetup& setup,
                                                   const PicaVSConfig& config,
                                                   bool separable_shader) {
     std::string out = GLShader::GetGLSLVersionString();
@@ -1851,7 +1853,7 @@ void main() {
     return out;
 }
 
-boost::optional<std::string> GenerateGeometryShader(const Pica::Shader::ShaderSetup& setup,
+std::optional<std::string> GenerateGeometryShader(const Pica::Shader::ShaderSetup& setup,
                                                     const PicaGSConfig& config,
                                                     bool separable_shader) {
     std::string out = GLShader::GetGLSLVersionString();
