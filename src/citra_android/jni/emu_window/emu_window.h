@@ -9,7 +9,7 @@
 #include "citra_android/jni/ndk_helper/GLContext.h"
 #include "core/frontend/emu_window.h"
 
-class EmuWindow_Android : public EmuWindow {
+class EmuWindow_Android : public Frontend::EmuWindow {
 public:
     EmuWindow_Android(ANativeWindow* surface);
     ~EmuWindow_Android();

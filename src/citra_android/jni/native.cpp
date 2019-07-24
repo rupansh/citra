@@ -132,7 +132,7 @@ static int RunCitra(const std::string& filepath) {
         break; // Expected case
     }
 
-    Core::Telemetry().AddField(Telemetry::FieldType::App, "Frontend", "SDL");
+    Core::TelemetrySession().AddField(Telemetry::FieldType::App, "Frontend", "SDL");
 
     is_running = true;
     pause_emulation = false;

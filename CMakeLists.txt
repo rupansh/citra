@@ -112,16 +112,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 
-if(ANDROID)
-    message(STATUS "Building for Android")
-
-    # We are cross compiling, search only the toolchain for libraries and includes
-    SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-    SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-    SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-    SET(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
-endif()
-
 # System imported libraries
 # ======================
 
