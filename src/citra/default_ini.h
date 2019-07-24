@@ -94,7 +94,7 @@ use_cpu_jit =
 [Renderer]
 # Whether to render using GLES or OpenGL
 # 0 (default): OpenGL, 1: GLES
-use_gles =
+use_gles =1
 
 # Whether to use software or hardware rendering.
 # 0: Software, 1 (default): Hardware
