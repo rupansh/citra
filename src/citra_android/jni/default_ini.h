@@ -70,7 +70,7 @@ motion_device=
 #  - "emu_window" (default) for emulating touch input from mouse input to the emulation window. No parameters required
 #  - "cemuhookudp" reads touch input from a udp server that uses cemuhook's udp protocol
 #      - "min_x", "min_y", "max_x", "max_y": defines the udp device's touch screen coordinate system
-touch_device=
+touch_device=engine:emu_window
 
 # Most desktop operating systems do not expose a way to poll the motion state of the controllers
 # so as a way around it, cemuhook created a udp client/server protocol to broadcast the data directly
