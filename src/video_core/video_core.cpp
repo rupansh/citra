@@ -37,7 +37,9 @@ Core::System::ResultStatus Init(Frontend::EmuWindow& emu_window, Memory::MemoryS
     g_memory = &memory;
     Pica::Init();
 
-    OpenGL::GLES = Settings::values.use_gles;
+    Settings::values.use_gles = 1;
+
+    OpenGL::GLES = 1;
 
     g_renderer = std::make_unique<OpenGL::RendererOpenGL>(emu_window);
     Core::System::ResultStatus result = g_renderer->Init();
